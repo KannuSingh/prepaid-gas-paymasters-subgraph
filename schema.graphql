@@ -1,0 +1,62 @@
+type MemberAdded @entity(immutable: true) {
+  id: Bytes!
+  poolId: BigInt! # uint256
+  memberIndex: BigInt! # uint256
+  identityCommitment: BigInt! # uint256
+  merkleTreeRoot: BigInt! # uint256
+  merkleRootIndex: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MembersAdded @entity(immutable: true) {
+  id: Bytes!
+  poolId: BigInt! # uint256
+  startIndex: BigInt! # uint256
+  identityCommitments: [BigInt!]! # uint256[]
+  merkleTreeRoot: BigInt! # uint256
+  merkleRootIndex: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PoolCreated @entity(immutable: true) {
+  id: Bytes!
+  poolId: BigInt! # uint256
+  joiningFee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RevenueWithdrawn @entity(immutable: true) {
+  id: Bytes!
+  recipient: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UserOpSponsored @entity(immutable: true) {
+  id: Bytes!
+  userOpHash: Bytes! # bytes32
+  poolId: BigInt! # uint256
+  sender: Bytes! # address
+  actualGasCost: BigInt! # uint256
+  nullifier: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

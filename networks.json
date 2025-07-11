@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "GasLimitedPaymaster": {
+      "address": "0x3BEeC075aC5A77fFE0F9ee4bbb3DCBd07fA93fbf",
+      "startBlock": 27904637
+    }
+  }
+}
