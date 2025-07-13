@@ -6,7 +6,7 @@ import {
     UserOpSponsored,
     RevenueWithdrawn,
     OwnershipTransferred,
-} from "../generated/GasLimitedPaymaster/GasLimitedPaymaster";
+} from "../generated/OneTimeUsePaymaster/OneTimeUsePaymaster";
 import { Pool, PaymasterContract, NullifierUsage } from "../generated/schema";
 import {
     getOrCreatePaymasterContract,
@@ -24,9 +24,9 @@ import {
 } from "./utils";
 
 export function handlePoolCreated(event: PoolCreated): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: Pool created - poolId: {}, joiningFee: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: Pool created - poolId: {}, joiningFee: {}, network: {}", [
         event.params.poolId.toString(),
         event.params.joiningFee.toString(),
         paymaster.network,
@@ -40,9 +40,9 @@ export function handlePoolCreated(event: PoolCreated): void {
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: Member added - poolId: {}, memberIndex: {}, identityCommitment: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: Member added - poolId: {}, memberIndex: {}, identityCommitment: {}, network: {}", [
         event.params.poolId.toString(),
         event.params.memberIndex.toString(),
         event.params.identityCommitment.toString(),
@@ -51,7 +51,7 @@ export function handleMemberAdded(event: MemberAdded): void {
 
     let pool = Pool.load(generateEntityId(paymaster.network, paymaster.address.toHexString(), event.params.poolId.toString()));
     if (pool == null) {
-        log.error("GasLimitedPaymaster: Pool not found for member addition - poolId: {}", [event.params.poolId.toString()]);
+        log.error("OneTimeUsePaymaster: Pool not found for member addition - poolId: {}", [event.params.poolId.toString()]);
         return;
     }
 
@@ -62,7 +62,7 @@ export function handleMemberAdded(event: MemberAdded): void {
         event.params.memberIndex,
         event.params.identityCommitment,
         event.params.merkleTreeRoot,
-        event.params.merkleRootIndex.toI32(),
+        event.params.merkleRootIndex.toU32(),
         event.block,
         event.transaction
     );
@@ -70,7 +70,7 @@ export function handleMemberAdded(event: MemberAdded): void {
     // Update pool stats
     pool.memberCount = pool.memberCount.plus(ONE_BI);
     pool.currentMerkleRoot = event.params.merkleTreeRoot;
-    pool.currentRootIndex = event.params.merkleRootIndex.toI32();
+    pool.currentRootIndex = event.params.merkleRootIndex.toU32();
     pool.rootHistoryCount = pool.rootHistoryCount + 1;
     pool.totalDeposits = pool.totalDeposits.plus(pool.joiningFee);
     pool.lastUpdatedBlock = event.block.number;
@@ -78,7 +78,7 @@ export function handleMemberAdded(event: MemberAdded): void {
     pool.save();
 
     // Create merkle root entry
-    createMerkleRoot(pool, paymaster, event.params.merkleTreeRoot, event.params.merkleRootIndex.toI32(), event.block, event.transaction);
+    createMerkleRoot(pool, paymaster, event.params.merkleTreeRoot, event.params.merkleRootIndex.toU32(), event.block, event.transaction);
 
     // Update paymaster total deposits
     paymaster.totalUsersDeposit = paymaster.totalUsersDeposit.plus(pool.joiningFee);
@@ -92,9 +92,9 @@ export function handleMemberAdded(event: MemberAdded): void {
 }
 
 export function handleMembersAdded(event: MembersAdded): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: Members added - poolId: {}, startIndex: {}, count: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: Members added - poolId: {}, startIndex: {}, count: {}, network: {}", [
         event.params.poolId.toString(),
         event.params.startIndex.toString(),
         event.params.identityCommitments.length.toString(),
@@ -103,7 +103,7 @@ export function handleMembersAdded(event: MembersAdded): void {
 
     let pool = Pool.load(generateEntityId(paymaster.network, paymaster.address.toHexString(), event.params.poolId.toString()));
     if (pool == null) {
-        log.error("GasLimitedPaymaster: Pool not found for members addition - poolId: {}", [event.params.poolId.toString()]);
+        log.error("OneTimeUsePaymaster: Pool not found for members addition - poolId: {}", [event.params.poolId.toString()]);
         return;
     }
 
@@ -121,7 +121,7 @@ export function handleMembersAdded(event: MembersAdded): void {
             memberIndex,
             identityCommitment,
             event.params.merkleTreeRoot,
-            event.params.merkleRootIndex.toI32(),
+            event.params.merkleRootIndex.toU32(),
             event.block,
             event.transaction
         );
@@ -130,7 +130,7 @@ export function handleMembersAdded(event: MembersAdded): void {
     // Update pool stats
     pool.memberCount = pool.memberCount.plus(membersCount);
     pool.currentMerkleRoot = event.params.merkleTreeRoot;
-    pool.currentRootIndex = event.params.merkleRootIndex.toI32();
+    pool.currentRootIndex = event.params.merkleRootIndex.toU32();
     pool.rootHistoryCount = pool.rootHistoryCount + 1;
     pool.totalDeposits = pool.totalDeposits.plus(totalJoiningFee);
     pool.lastUpdatedBlock = event.block.number;
@@ -138,7 +138,7 @@ export function handleMembersAdded(event: MembersAdded): void {
     pool.save();
 
     // Create merkle root entry
-    createMerkleRoot(pool, paymaster, event.params.merkleTreeRoot, event.params.merkleRootIndex.toI32(), event.block, event.transaction);
+    createMerkleRoot(pool, paymaster, event.params.merkleTreeRoot, event.params.merkleRootIndex.toU32(), event.block, event.transaction);
 
     // Update paymaster total deposits
     paymaster.totalUsersDeposit = paymaster.totalUsersDeposit.plus(totalJoiningFee);
@@ -152,9 +152,9 @@ export function handleMembersAdded(event: MembersAdded): void {
 }
 
 export function handleUserOpSponsored(event: UserOpSponsored): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: UserOp sponsored - userOpHash: {}, poolId: {}, sender: {}, actualGasCost: {}, nullifier: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: UserOp sponsored - userOpHash: {}, poolId: {}, sender: {}, actualGasCost: {}, nullifier: {}, network: {}", [
         event.params.userOpHash.toHexString(),
         event.params.poolId.toString(),
         event.params.sender.toHexString(),
@@ -165,7 +165,7 @@ export function handleUserOpSponsored(event: UserOpSponsored): void {
 
     let pool = Pool.load(generateEntityId(paymaster.network, paymaster.address.toHexString(), event.params.poolId.toString()));
     if (pool == null) {
-        log.error("GasLimitedPaymaster: Pool not found for UserOp - poolId: {}", [event.params.poolId.toString()]);
+        log.error("OneTimeUsePaymaster: Pool not found for UserOp - poolId: {}", [event.params.poolId.toString()]);
         return;
     }
 
@@ -189,15 +189,17 @@ export function handleUserOpSponsored(event: UserOpSponsored): void {
     pool.lastUpdatedTimestamp = event.block.timestamp;
     pool.save();
 
-    // Update paymaster total deposits
-    paymaster.totalUsersDeposit = paymaster.totalUsersDeposit.minus(event.params.actualGasCost);
+    // For OneTimeUse paymaster, the entire joining fee is considered consumed
+    // So we subtract the full joining fee from totalUsersDeposit
+    paymaster.totalUsersDeposit = paymaster.totalUsersDeposit.minus(pool.joiningFee);
     paymaster.lastUpdatedBlock = event.block.number;
     paymaster.lastUpdatedTimestamp = event.block.timestamp;
     paymaster.save();
 
-    // Update nullifier usage for gas tracking
+    // Update nullifier usage for one-time use tracking
     let nullifierUsage = getOrCreateNullifierUsage(nullifier, paymaster, pool, event.block, event.transaction);
-    nullifierUsage.gasUsed = nullifierUsage.gasUsed.plus(event.params.actualGasCost);
+    nullifierUsage.isUsed = true;
+    nullifierUsage.transaction = event.transaction.hash.toHexString();
     nullifierUsage.lastUpdatedBlock = event.block.number;
     nullifierUsage.lastUpdatedTimestamp = event.block.timestamp;
     nullifierUsage.save();
@@ -208,9 +210,9 @@ export function handleUserOpSponsored(event: UserOpSponsored): void {
 }
 
 export function handleRevenueWithdrawn(event: RevenueWithdrawn): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: Revenue withdrawn - recipient: {}, amount: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: Revenue withdrawn - recipient: {}, amount: {}, network: {}", [
         event.params.recipient.toHexString(),
         event.params.amount.toString(),
         paymaster.network,
@@ -231,9 +233,9 @@ export function handleRevenueWithdrawn(event: RevenueWithdrawn): void {
 }
 
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
-    let paymaster = getOrCreatePaymasterContract(event.address, "GasLimited", event.block, event.transaction);
+    let paymaster = getOrCreatePaymasterContract(event.address, "OneTimeUse", event.block, event.transaction);
 
-    log.info("GasLimitedPaymaster: Ownership transferred - from: {}, to: {}, network: {}", [
+    log.info("OneTimeUsePaymaster: Ownership transferred - from: {}, to: {}, network: {}", [
         event.params.previousOwner.toHexString(),
         event.params.newOwner.toHexString(),
         paymaster.network,

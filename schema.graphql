@@ -1,62 +1,296 @@
-type MemberAdded @entity(immutable: true) {
-  id: Bytes!
-  poolId: BigInt! # uint256
-  memberIndex: BigInt! # uint256
-  identityCommitment: BigInt! # uint256
-  merkleTreeRoot: BigInt! # uint256
-  merkleRootIndex: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type PaymasterContract @entity(immutable: false) {
+  # Contract address as ID
+  id: ID!
+  # Contract type: "GasLimited" or "OneTimeUse"
+  contractType: String!
+  # Contract address
+  address: Bytes!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Total user deposits tracked by this paymaster
+  totalUsersDeposit: BigInt!
+  # Current deposit in EntryPoint
+  currentDeposit: BigInt!
+  # Calculated revenue (currentDeposit - totalUsersDeposit)
+  revenue: BigInt!
+  # Block when contract was deployed
+  deployedAtBlock: BigInt!
+  # Transaction hash of deployment
+  deployedAtTransaction: Bytes!
+  # Timestamp of deployment
+  deployedAtTimestamp: BigInt!
+  # Pools managed by this paymaster
+  pools: [Pool!]! @derivedFrom(field: "paymaster")
+  # User operations sponsored by this paymaster
+  transactions: [Transaction!]! @derivedFrom(field: "paymaster")
+  # Revenue withdrawals from this paymaster
+  revenueWithdrawals: [RevenueWithdrawal!]! @derivedFrom(field: "paymaster")
+  # Last updated block
+  lastUpdatedBlock: BigInt!
+  # Last updated timestamp
+  lastUpdatedTimestamp: BigInt!
 }
 
-type MembersAdded @entity(immutable: true) {
-  id: Bytes!
-  poolId: BigInt! # uint256
-  startIndex: BigInt! # uint256
-  identityCommitments: [BigInt!]! # uint256[]
-  merkleTreeRoot: BigInt! # uint256
-  merkleRootIndex: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Pool @entity(immutable: false) {
+  # Pool ID as string
+  id: ID!
+  # Numeric pool ID
+  poolId: BigInt!
+  # Paymaster contract that manages this pool
+  paymaster: PaymasterContract!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Fee required to join this pool
+  joiningFee: BigInt!
+  # Total deposits in this pool
+  totalDeposits: BigInt!
+  # Current number of members
+  memberCount: BigInt!
+  # Current Merkle tree root
+  currentMerkleRoot: BigInt!
+  # Current root index in history
+  currentRootIndex: Int!
+  # Total number of roots in history
+  rootHistoryCount: Int!
+  # Block when pool was created
+  createdAtBlock: BigInt!
+  # Transaction hash of creation
+  createdAtTransaction: Bytes!
+  # Timestamp of creation
+  createdAtTimestamp: BigInt!
+  # Pool members
+  members: [PoolMember!]! @derivedFrom(field: "pool")
+  # User operations from this pool
+  transactions: [Transaction!]! @derivedFrom(field: "pool")
+  # Merkle root history
+  merkleRoots: [MerkleRoot!]! @derivedFrom(field: "pool")
+  # Last updated block
+  lastUpdatedBlock: BigInt!
+  # Last updated timestamp
+  lastUpdatedTimestamp: BigInt!
 }
 
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type PoolMember @entity(immutable: true) {
+  # Pool ID + Member Index as ID
+  id: ID!
+  # Pool this member belongs to
+  pool: Pool!
+  # Paymaster contract that manages this pool
+  paymaster: PaymasterContract!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Member index in the pool
+  memberIndex: BigInt!
+  # Identity commitment
+  identityCommitment: BigInt!
+  # Merkle root when member was added
+  merkleRootWhenAdded: BigInt!
+  # Root index when member was added
+  rootIndexWhenAdded: Int!
+  # Block when member was added
+  addedAtBlock: BigInt!
+  # Transaction hash of addition
+  addedAtTransaction: Bytes!
+  # Timestamp of addition
+  addedAtTimestamp: BigInt!
+  # For GasLimited: track gas usage (if applicable)
+  gasUsed: BigInt
+  # For OneTimeUse: track if nullifier was used
+  nullifierUsed: Boolean
+  # Nullifier value (if known)
+  nullifier: BigInt
 }
 
-type PoolCreated @entity(immutable: true) {
-  id: Bytes!
-  poolId: BigInt! # uint256
-  joiningFee: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type MerkleRoot @entity(immutable: true) {
+  # Pool ID + Root Index as ID
+  id: ID!
+  # Pool this root belongs to
+  pool: Pool!
+  # Paymaster contract that manages this pool
+  paymaster: PaymasterContract!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Root value
+  root: BigInt!
+  # Index in the history
+  rootIndex: Int!
+  # Block when root was created
+  createdAtBlock: BigInt!
+  # Transaction hash when root was created
+  createdAtTransaction: Bytes!
+  # Timestamp when root was created
+  createdAtTimestamp: BigInt!
 }
 
-type RevenueWithdrawn @entity(immutable: true) {
-  id: Bytes!
-  recipient: Bytes! # address
-  amount: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Transaction @entity(immutable: true) {
+  # User operation hash as ID
+  id: ID!
+  # User operation hash
+  userOpHash: Bytes!
+  # Paymaster that sponsored this operation
+  paymaster: PaymasterContract!
+  # Pool used for this operation
+  pool: Pool!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Sender of the user operation
+  sender: Bytes!
+  # Actual gas cost for this operation
+  actualGasCost: BigInt!
+  # Nullifier used (for tracking)
+  nullifier: BigInt!
+  # Block when operation was executed
+  executedAtBlock: BigInt!
+  # Transaction hash of execution
+  executedAtTransaction: Bytes!
+  # Timestamp of execution
+  executedAtTimestamp: BigInt!
+  # Gas price used
+  gasPrice: BigInt
+  # Total gas used (including postOp)
+  totalGasUsed: BigInt
 }
 
-type UserOpSponsored @entity(immutable: true) {
-  id: Bytes!
-  userOpHash: Bytes! # bytes32
-  poolId: BigInt! # uint256
-  sender: Bytes! # address
-  actualGasCost: BigInt! # uint256
-  nullifier: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type RevenueWithdrawal @entity(immutable: true) {
+  # Transaction hash + log index as ID
+  id: ID!
+  # Paymaster that withdrew revenue
+  paymaster: PaymasterContract!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Recipient of the withdrawal
+  recipient: Bytes!
+  # Amount withdrawn
+  amount: BigInt!
+  # Block of withdrawal
+  withdrawnAtBlock: BigInt!
+  # Transaction hash of withdrawal
+  withdrawnAtTransaction: Bytes!
+  # Timestamp of withdrawal
+  withdrawnAtTimestamp: BigInt!
+}
+
+type NullifierUsage @entity(immutable: false) {
+  # Nullifier as ID
+  id: ID!
+  # Nullifier value
+  nullifier: BigInt!
+  # Paymaster contract
+  paymaster: PaymasterContract!
+  # Pool where nullifier was used
+  pool: Pool!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Whether nullifier is used (for OneTimeUse)
+  isUsed: Boolean!
+  # Gas used by this nullifier (for GasLimited)
+  gasUsed: BigInt!
+  # User operation that used this nullifier
+  transaction: Transaction
+  # Block when first used
+  firstUsedAtBlock: BigInt
+  # Transaction hash when first used
+  firstUsedAtTransaction: Bytes
+  # Timestamp when first used
+  firstUsedAtTimestamp: BigInt
+  # Last updated block
+  lastUpdatedBlock: BigInt!
+  # Last updated timestamp
+  lastUpdatedTimestamp: BigInt!
+}
+
+# Daily aggregated statistics
+type DailyPoolStats @entity(immutable: false) {
+  # Date (YYYY-MM-DD) + Pool ID as ID
+  id: ID!
+  # Date
+  date: String!
+  # Pool
+  pool: Pool!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Daily new members
+  newMembers: BigInt!
+  # Daily user operations
+  transactions: BigInt!
+  # Daily gas spent
+  gasSpent: BigInt!
+  # Daily revenue generated
+  revenueGenerated: BigInt!
+  # Total members at end of day
+  totalMembers: BigInt!
+  # Total deposits at end of day
+  totalDeposits: BigInt!
+}
+
+# Global daily statistics
+type DailyGlobalStats @entity(immutable: false) {
+  # Date (YYYY-MM-DD) as ID
+  id: ID!
+  # Date
+  date: String!
+  # Network/Chain identifier
+  network: String!
+  # Chain ID
+  chainId: BigInt!
+  # Total pools created this day
+  newPools: BigInt!
+  # Total new members across all pools
+  totalNewMembers: BigInt!
+  # Total user operations across all paymasters
+  totalTransactions: BigInt!
+  # Total gas spent across all paymasters
+  totalGasSpent: BigInt!
+  # Total revenue generated across all paymasters
+  totalRevenueGenerated: BigInt!
+  # Total active pools
+  totalActivePools: BigInt!
+  # Total members across all pools
+  totalMembers: BigInt!
+}
+
+# Network/Chain information entity
+type NetworkInfo @entity(immutable: false) {
+  # Network identifier as ID
+  id: ID!
+  # Network name
+  name: String!
+  # Chain ID
+  chainId: BigInt!
+  # Total paymasters deployed on this network
+  totalPaymasters: BigInt!
+  # Total pools across all paymasters
+  totalPools: BigInt!
+  # Total members across all pools
+  totalMembers: BigInt!
+  # Total user operations
+  totalTransactions: BigInt!
+  # Total gas spent
+  totalGasSpent: BigInt!
+  # Total revenue generated
+  totalRevenue: BigInt!
+  # First deployment block
+  firstDeploymentBlock: BigInt!
+  # First deployment timestamp
+  firstDeploymentTimestamp: BigInt!
+  # Last activity block
+  lastActivityBlock: BigInt!
+  # Last activity timestamp
+  lastActivityTimestamp: BigInt!
 }

@@ -1,7 +1,7 @@
 import { assert, describe, test, clearStore, beforeAll, afterAll } from "matchstick-as/assembly/index";
 import { BigInt } from "@graphprotocol/graph-ts";
-import { handleMemberAdded } from "../src/gas-limited-paymaster";
-import { createMemberAddedEvent } from "./gas-limited-paymaster-utils";
+import { handleMemberAdded } from "../src/one-time-use-paymaster";
+import { createMemberAddedEvent } from "./one-time-use-paymaster-utils";
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/subgraphs/developing/creating/unit-testing-framework/#tests-structure

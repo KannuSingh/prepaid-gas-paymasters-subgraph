@@ -3,6 +3,10 @@
     "GasLimitedPaymaster": {
       "address": "0x3BEeC075aC5A77fFE0F9ee4bbb3DCBd07fA93fbf",
       "startBlock": 27904637
+    },
+    "OneTimeUsePaymaster": {
+      "address": "0x243A735115F34BD5c0F23a33a444a8d26e31E2E7",
+      "startBlock": 27904638
     }
   }
 }

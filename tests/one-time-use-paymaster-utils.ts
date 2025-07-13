@@ -7,7 +7,7 @@ import {
     PoolCreated,
     RevenueWithdrawn,
     UserOpSponsored,
-} from "../generated/GasLimitedPaymaster/GasLimitedPaymaster";
+} from "../generated/OneTimeUsePaymaster/OneTimeUsePaymaster";
 
 export function createMemberAddedEvent(
     poolId: BigInt,

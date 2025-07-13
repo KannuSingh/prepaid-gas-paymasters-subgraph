@@ -16,12 +16,15 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - MemberAdded
-        - MembersAdded
-        - OwnershipTransferred
-        - PoolCreated
-        - RevenueWithdrawn
-        - UserOpSponsored
+        - PaymasterContract
+        - Pool
+        - PoolMember
+        - Transaction
+        - RevenueWithdrawal
+        - NullifierUsage
+        - MerkleRoot
+        - DailyPoolStats
+        - DailyGlobalStats
       abis:
         - name: GasLimitedPaymaster
           file: ./abis/GasLimitedPaymaster.json
@@ -39,3 +42,41 @@ dataSources:
         - event: UserOpSponsored(indexed bytes32,indexed uint256,address,uint256,uint256)
           handler: handleUserOpSponsored
       file: ./src/gas-limited-paymaster.ts
+  - kind: ethereum
+    name: OneTimeUsePaymaster
+    network: base-sepolia
+    source:
+      address: "0x243A735115F34BD5c0F23a33a444a8d26e31E2E7"
+      abi: OneTimeUsePaymaster
+      startBlock: 27904638
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - PaymasterContract
+        - Pool
+        - PoolMember
+        - Transaction
+        - RevenueWithdrawal
+        - NullifierUsage
+        - MerkleRoot
+        - DailyPoolStats
+        - DailyGlobalStats
+      abis:
+        - name: OneTimeUsePaymaster
+          file: ./abis/OneTimeUsePaymaster.json
+      eventHandlers:
+        - event: MemberAdded(indexed uint256,indexed uint256,indexed uint256,uint256,uint32)
+          handler: handleMemberAdded
+        - event: MembersAdded(indexed uint256,uint256,uint256[],uint256,uint32)
+          handler: handleMembersAdded
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PoolCreated(indexed uint256,uint256)
+          handler: handlePoolCreated
+        - event: RevenueWithdrawn(indexed address,uint256)
+          handler: handleRevenueWithdrawn
+        - event: UserOpSponsored(indexed bytes32,indexed uint256,address,uint256,uint256)
+          handler: handleUserOpSponsored
+      file: ./src/one-time-use-paymaster.ts
