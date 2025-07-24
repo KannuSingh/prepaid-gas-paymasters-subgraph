@@ -4,6 +4,7 @@ type PaymasterContract @entity(immutable: false) {
   
   # Contract identification
   address: Bytes!
+  contractType: String! # "OneTimeUse", "GasLimited", "CacheEnabledGasLimited"
   network: String!
   chainId: BigInt!
   

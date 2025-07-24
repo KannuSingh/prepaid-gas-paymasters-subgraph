@@ -120,6 +120,7 @@ export function getOrCreatePaymasterContract(
     if (paymaster == null) {
         paymaster = new PaymasterContract(entityId);
         paymaster.address = address;
+        paymaster.contractType = contractConfig.type;
         paymaster.network = contractConfig.network;
         paymaster.chainId = networkConfig.chainId;
 
