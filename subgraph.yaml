@@ -5,78 +5,102 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: GasLimitedPaymaster
-    network: base-sepolia
-    source:
-      address: "0x3BEeC075aC5A77fFE0F9ee4bbb3DCBd07fA93fbf"
-      abi: GasLimitedPaymaster
-      startBlock: 27904637
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.9
-      language: wasm/assemblyscript
-      entities:
-        - PaymasterContract
-        - Pool
-        - PoolMember
-        - Transaction
-        - RevenueWithdrawal
-        - NullifierUsage
-        - MerkleRoot
-        - DailyPoolStats
-        - DailyGlobalStats
-      abis:
-        - name: GasLimitedPaymaster
-          file: ./abis/GasLimitedPaymaster.json
-      eventHandlers:
-        - event: MemberAdded(indexed uint256,indexed uint256,indexed uint256,uint256,uint32)
-          handler: handleMemberAdded
-        - event: MembersAdded(indexed uint256,uint256,uint256[],uint256,uint32)
-          handler: handleMembersAdded
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: PoolCreated(indexed uint256,uint256)
-          handler: handlePoolCreated
-        - event: RevenueWithdrawn(indexed address,uint256)
-          handler: handleRevenueWithdrawn
-        - event: UserOpSponsored(indexed bytes32,indexed uint256,address,uint256,uint256)
-          handler: handleUserOpSponsored
-      file: ./src/gas-limited-paymaster.ts
-  - kind: ethereum
     name: OneTimeUsePaymaster
     network: base-sepolia
     source:
-      address: "0x243A735115F34BD5c0F23a33a444a8d26e31E2E7"
+      address: "0xF003a8C423691dCFB35Ac54e2fB6a7B1AE3185bf"
       abi: OneTimeUsePaymaster
-      startBlock: 27904638
+      startBlock: 28769825
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
         - PaymasterContract
-        - Pool
-        - PoolMember
-        - Transaction
-        - RevenueWithdrawal
-        - NullifierUsage
-        - MerkleRoot
-        - DailyPoolStats
-        - DailyGlobalStats
+        - Activity
+        - UserOperation
       abis:
         - name: OneTimeUsePaymaster
           file: ./abis/OneTimeUsePaymaster.json
       eventHandlers:
-        - event: MemberAdded(indexed uint256,indexed uint256,indexed uint256,uint256,uint32)
-          handler: handleMemberAdded
-        - event: MembersAdded(indexed uint256,uint256,uint256[],uint256,uint32)
-          handler: handleMembersAdded
+        - event: Deposited(indexed address,uint256)
+          handler: handleDeposited
+        - event: LeafInserted(uint256,uint256,uint256)
+          handler: handleLeafInserted
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-        - event: PoolCreated(indexed uint256,uint256)
-          handler: handlePoolCreated
-        - event: RevenueWithdrawn(indexed address,uint256)
+        - event: PoolDied()
+          handler: handlePoolDied
+        - event: UserOpSponsoredWithNullifier(indexed address,indexed bytes32,uint256,uint256)
+          handler: handleUserOpSponsoredWithNullifier
+        - event: RevenueWithdrawn(address,uint256)
           handler: handleRevenueWithdrawn
-        - event: UserOpSponsored(indexed bytes32,indexed uint256,address,uint256,uint256)
-          handler: handleUserOpSponsored
       file: ./src/one-time-use-paymaster.ts
+
+  - kind: ethereum
+    name: GasLimitedPaymaster
+    network: base-sepolia
+    source:
+      address: "0xA1c868aD7fae4159f07493df22E5004aaDb5467D"
+      abi: GasLimitedPaymaster
+      startBlock: 28769824
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - PaymasterContract
+        - Activity
+        - UserOperation
+      abis:
+        - name: GasLimitedPaymaster
+          file: ./abis/GasLimitedPaymaster.json
+      eventHandlers:
+        - event: Deposited(indexed address,uint256)
+          handler: handleDeposited
+        - event: LeafInserted(uint256,uint256,uint256)
+          handler: handleLeafInserted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PoolDied()
+          handler: handlePoolDied
+        - event: UserOpSponsoredWithNullifier(indexed address,indexed bytes32,uint256,uint256)
+          handler: handleUserOpSponsoredWithNullifier
+        - event: RevenueWithdrawn(address,uint256)
+          handler: handleRevenueWithdrawn
+      file: ./src/gas-limited-paymaster.ts
+
+  - kind: ethereum
+    name: CacheEnabledGasLimitedPaymaster
+    network: base-sepolia
+    source:
+      address: "0x67A9Ed5F51d8Eb2ceA70075B0554a9c2F21E8708"
+      abi: CacheEnabledGasLimitedPaymaster
+      startBlock: 28769823
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - PaymasterContract
+        - Activity
+        - UserOperation
+      abis:
+        - name: CacheEnabledGasLimitedPaymaster
+          file: ./abis/CacheEnabledGasLimitedPaymaster.json
+      eventHandlers:
+        - event: Deposited(indexed address,uint256)
+          handler: handleDeposited
+        - event: LeafInserted(uint256,uint256,uint256)
+          handler: handleLeafInserted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PoolDied()
+          handler: handlePoolDied
+        - event: UserOpSponsored(indexed address,indexed bytes32,uint256)
+          handler: handleUserOpSponsored
+        - event: NullifierConsumed(indexed bytes32,indexed uint256,uint256,uint8)
+          handler: handleNullifierConsumed
+        - event: RevenueWithdrawn(address,uint256)
+          handler: handleRevenueWithdrawn
+      file: ./src/cache-enabled-gas-limited-paymaster.ts

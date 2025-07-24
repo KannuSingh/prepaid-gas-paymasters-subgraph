@@ -1,12 +1,16 @@
 {
   "base-sepolia": {
     "GasLimitedPaymaster": {
-      "address": "0x3BEeC075aC5A77fFE0F9ee4bbb3DCBd07fA93fbf",
-      "startBlock": 27904637
+      "address": "0xA1c868aD7fae4159f07493df22E5004aaDb5467D",
+      "startBlock": 28769824
     },
     "OneTimeUsePaymaster": {
-      "address": "0x243A735115F34BD5c0F23a33a444a8d26e31E2E7",
-      "startBlock": 27904638
+      "address": "0xF003a8C423691dCFB35Ac54e2fB6a7B1AE3185bf",
+      "startBlock": 28769825
+    },
+    "CacheEnabledGasLimitedPaymaster": {
+      "address": "0x67A9Ed5F51d8Eb2ceA70075B0554a9c2F21E8708",
+      "startBlock": 28769823
     }
   }
 }

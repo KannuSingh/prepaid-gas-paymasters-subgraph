@@ -4,9 +4,11 @@ import {
     LeafInserted,
     OwnershipTransferred,
     PoolDied,
-    UserOpSponsoredWithNullifier,
+    UserOpSponsored,
+    NullifierConsumed,
     RevenueWithdrawn,
-} from "../generated/GasLimitedPaymaster/GasLimitedPaymaster";
+} from "../generated/CacheEnabledGasLimitedPaymaster/CacheEnabledGasLimitedPaymaster";
+import { UserOperation } from "../generated/schema";
 import {
     processDeposited,
     processLeafInserted,
@@ -15,9 +17,9 @@ import {
     processRevenueWithdrawn,
     createUserOpSponsoredActivity,
 } from "./common-handlers";
-import { getOrCreatePaymasterContract, createUserOperation, ZERO_BI, ONE_BI } from "./utils";
+import { getOrCreatePaymasterContract, createUserOperation, generateEntityId, ZERO_BI, ONE_BI } from "./utils";
 
-const CONTRACT_TYPE = "GasLimited";
+const CONTRACT_TYPE = "CacheEnabledGasLimited";
 
 // Common event handlers using shared logic
 export function handleDeposited(event: Deposited): void {
@@ -40,16 +42,15 @@ export function handleRevenueWithdrawn(event: RevenueWithdrawn): void {
     processRevenueWithdrawn(event.address, event.params.withdrawAddress, event.params.amount, CONTRACT_TYPE, event.block, event.transaction);
 }
 
-// Contract-specific event handler
-export function handleUserOpSponsoredWithNullifier(event: UserOpSponsoredWithNullifier): void {
+// Contract-specific event handlers
+export function handleUserOpSponsored(event: UserOpSponsored): void {
     let paymaster = getOrCreatePaymasterContract(event.address, CONTRACT_TYPE, event.block, event.transaction);
 
-    log.info("{}: UserOp sponsored with nullifier - sender: {}, userOpHash: {}, actualGasCost: {}, nullifier: {}, network: {}", [
+    log.info("{}: UserOp sponsored - sender: {}, userOpHash: {}, actualGasCost: {}, network: {}", [
         CONTRACT_TYPE,
         event.params.sender.toHexString(),
         event.params.userOpHash.toHexString(),
         event.params.actualGasCost.toString(),
-        event.params.nullifierUsed.toString(),
         paymaster.network,
     ]);
 
@@ -63,20 +64,59 @@ export function handleUserOpSponsoredWithNullifier(event: UserOpSponsoredWithNul
         event.transaction
     );
 
-    // Create UserOperation entity with nullifier included
+    // Create UserOperation entity (nullifier will be set by NullifierConsumed event)
     createUserOperation(
         event.params.userOpHash,
         paymaster,
         event.params.sender,
         event.params.actualGasCost,
-        event.params.nullifierUsed, // nullifier available directly from event
+        ZERO_BI, // nullifier placeholder - will be updated by NullifierConsumed
         event.block,
         event.transaction
     );
 
-    // For GasLimited: only deduct the actual gas cost (not full joining amount)
     // Update paymaster state
     paymaster.totalDeposit = paymaster.totalDeposit.minus(event.params.actualGasCost);
+    paymaster.lastBlock = event.block.number;
+    paymaster.lastTimestamp = event.block.timestamp;
+    paymaster.save();
+}
+
+export function handleNullifierConsumed(event: NullifierConsumed): void {
+    let paymaster = getOrCreatePaymasterContract(event.address, CONTRACT_TYPE, event.block, event.transaction);
+
+    log.info("{}: Nullifier consumed - userOpHash: {}, nullifier: {}, gasUsed: {}, index: {}, network: {}", [
+        CONTRACT_TYPE,
+        event.params.userOpHash.toHexString(),
+        event.params.nullifier.toString(),
+        event.params.gasUsed.toString(),
+        event.params.index.toString(),
+        paymaster.network,
+    ]);
+
+    // Find and update the corresponding UserOperation
+    let network = paymaster.network;
+    let userOpId = generateEntityId(network, event.params.userOpHash.toHexString());
+    let userOp = UserOperation.load(userOpId);
+
+    if (userOp != null) {
+        // Update with nullifier information
+        userOp.nullifier = event.params.nullifier;
+        userOp.save();
+
+        log.info("{}: Updated UserOperation {} with nullifier {}", [
+            CONTRACT_TYPE,
+            event.params.userOpHash.toHexString(),
+            event.params.nullifier.toString(),
+        ]);
+    } else {
+        log.warning("{}: Could not find UserOperation for nullifier consumption - userOpHash: {}", [
+            CONTRACT_TYPE,
+            event.params.userOpHash.toHexString(),
+        ]);
+    }
+
+    // Update paymaster timestamps
     paymaster.lastBlock = event.block.number;
     paymaster.lastTimestamp = event.block.timestamp;
     paymaster.save();
