@@ -71,8 +71,8 @@ export function processLeafInserted(
     updatePaymasterTreeState(
         paymaster,
         root,
-        index, // This might need adjustment based on how rootIndex works
-        index.plus(ONE_BI), // treeSize = index + 1
+        index.mod(BigInt.fromI32(64)), // This might need adjustment based on how rootIndex works
+        index, // treeSize = index + 1
         block
     );
 
