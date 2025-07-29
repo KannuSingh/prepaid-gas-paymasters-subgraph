@@ -1,6 +1,27 @@
 {
   "name": "prepaid-gas-paymasters",
-  "license": "UNLICENSED",
+  "version": "1.0.0",
+  "description": "The Graph subgraph for indexing paymaster events and activity from the Prepaid Gas paymaster system",
+  "license": "MIT",
+  "author": "Karandeep Singh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KannuSingh/prepaid-gas-paymasters-subgraph.git"
+  },
+  "homepage": "https://github.com/KannuSingh/prepaid-gas-paymasters-subgraph#readme",
+  "bugs": {
+    "url": "https://github.com/KannuSingh/prepaid-gas-paymasters-subgraph/issues"
+  },
+  "keywords": [
+    "subgraph",
+    "the-graph",
+    "paymaster",
+    "account-abstraction",
+    "erc-4337",
+    "ethereum",
+    "privacy",
+    "zero-knowledge"
+  ],
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
@@ -14,5 +35,7 @@
     "@graphprotocol/graph-cli": "0.97.1",
     "@graphprotocol/graph-ts": "0.37.0"
   },
-  "devDependencies": { "matchstick-as": "0.6.0" }
+  "devDependencies": {
+    "matchstick-as": "0.6.0"
+  }
 }
