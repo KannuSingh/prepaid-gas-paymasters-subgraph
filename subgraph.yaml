@@ -99,8 +99,6 @@ dataSources:
           handler: handlePoolDied
         - event: UserOpSponsored(indexed address,indexed bytes32,uint256)
           handler: handleUserOpSponsored
-        - event: NullifierConsumed(indexed bytes32,indexed uint256,uint256,uint8)
-          handler: handleNullifierConsumed
         - event: RevenueWithdrawn(address,uint256)
           handler: handleRevenueWithdrawn
       file: ./src/cache-enabled-gas-limited-paymaster.ts
