@@ -23,7 +23,11 @@
     "zero-knowledge"
   ],
   "scripts": {
-    "codegen": "graph codegen",
+    "generate-config": "node scripts/generate-config.js",
+    "codegen": "node scripts/codegen.js",
+    "codegen:base-sepolia": "node scripts/codegen.js base-sepolia",
+    "codegen:base": "node scripts/codegen.js base",
+    "codegen:ethereum": "node scripts/codegen.js ethereum",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ prepaid-gas-paymasters",
     "create-local": "graph create --node http://localhost:8020/ prepaid-gas-paymasters",
@@ -33,7 +37,8 @@
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.97.1",
-    "@graphprotocol/graph-ts": "0.37.0"
+    "@graphprotocol/graph-ts": "0.37.0",
+    "@prepaid-gas/constants": "^0.0.6"
   },
   "devDependencies": {
     "matchstick-as": "0.6.0"
